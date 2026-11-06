@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="vi" class="h-full bg-slate-50">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>UniWork - Nền Tảng Việc Làm Sinh Viên Toàn Quốc (Bảo Mật Phân Quyền)</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff', 100: '#e0e7ff', 200: '#c7d2fe',
+              500: '#6366f1', 600: '#4f46e5', 700: '#4338ca', 800: '#3730a3', 900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 9999px; }
+    .glass-nav { backdrop-filter: blur(14px); background-color: rgba(255, 255, 255, 0.94); }
+  </style>
+</head>
+<body class="h-full flex flex-col font-sans text-slate-800 antialiased selection:bg-brand-600 selection:text-white">
+
+  <!-- Toast Stack -->
+  <div id="toastContainer" class="fixed top-5 right-5 z-50 flex flex-col gap-2 pointer-events-none max-w-sm w-full px-4"></div>
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-40 border-b border-slate-200 glass-nav shadow-xs">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20 gap-3">
+        
+        <!-- Logo -->
+        <div class="flex items-center gap-3 cursor-pointer select-none" onclick="goHome()">
+          <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-indigo-600 to-blue-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/25">
+            <i data-lucide="shield-check" class="w-6 h-6"></i>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Uni<span class="text-brand-600">Work</span></span>
+              <span class="bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold px-2 py-0.5 rounded-full inline-flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                <span>Anti-Scam 100%</span>
+              </span>
+            </div>
+            <p class="hidden sm:block text-[11px] font-semibold text-slate-500">Toàn quốc &bull; Gia sư & Online &bull; Ca linh hoạt &le; 6h</p>
+          </div>
+        </div>
+
+        <!-- Session Status & Auth Switcher -->
+        <div class="flex items-center gap-2">
+          <div id="authNavbarInfo" class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-slate-100 rounded-xl text-xs font-bold text-slate-700">
+            <i data-lucide="user-check" class="w-4 h-4 text-brand-600"></i>
+            <span id="navRoleDisplay">Khách</span>
+          </div>
+
+          <button onclick="openModal('authModal')" id="authActionButton" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-1.5">
+            <i data-lucide="log-in" class="w-4 h-4"></i>
+            <span>Đăng Nhập / Đăng Ký</span>
+          </button>
+
+          <button onclick="logoutSession()" id="logoutButton" class="hidden px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 rounded-xl text-xs font-bold transition flex items-center gap-1">
+            <i data-lucide="log-out" class="w-3.5 h-3.5"></i>
+            <span>Đăng xuất</span>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- BANNER AN TOÀN -->
+  <div class="bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 text-white text-xs px-4 py-2 shadow-inner">
+    <div class="max-w-7xl mx-auto flex items-center justify-between gap-3">
+      <div class="flex items-center gap-2 font-medium overflow-hidden">
+        <i data-lucide="shield-alert" class="w-4 h-4 flex-shrink-0"></i>
+        <span class="truncate"><strong>Cam kết bảo vệ SV:</strong> Không thu tiền cọc &bull; Không giữ giấy tờ gốc &bull; Quản trị viên kiểm duyệt từng tin.</span>
+      </div>
+      <button onclick="openModal('reportModal')" class="bg-white/20 hover:bg-white/30 text-white text-[11px] font-bold px-3 py-1 rounded-lg transition whitespace-nowrap">Tố cáo lừa đảo</button>
+    </div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- WELCOME / CHƯA ĐĂNG NHẬP HOẶC CHƯA CHỌN VAI TRÒ -->
+    <div id="landingScreen" class="space-y-6">
+      <div class="bg-white rounded-3xl p-8 border border-slate-200 text-center max-w-3xl mx-auto space-y-4 shadow-sm">
+        <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-3xl flex items-center justify-center mx-auto shadow-inner">
+          <i data-lucide="graduation-cap" class="w-8 h-8"></i>
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-black text-slate-900">Chào Mừng Đến Với Cổng Việc Làm UniWork</h1>
+        <p class="text-xs sm:text-sm text-slate-600 max-w-xl mx-auto leading-relaxed">
+          Nền tảng kết nối việc làm bán thời gian an toàn cho sinh viên toàn quốc. Vui lòng chọn vai trò của bạn để tiếp tục trải nghiệm hệ thống riêng biệt:
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+          <button onclick="selectRole('student')" class="p-5 rounded-2xl border-2 border-brand-100 hover:border-brand-500 bg-brand-50/40 hover:bg-brand-50 transition text-left space-y-2 group">
+            <div class="w-10 h-10 rounded-xl bg-brand-600 text-white flex items-center justify-center font-bold">SV</div>
+            <h3 class="font-black text-slate-900 text-sm group-hover:text-brand-600">1. Tôi là Sinh Viên</h3>
+            <p class="text-[11px] text-slate-500">Tìm việc làm thêm, Gia sư, Việc online tại nhà quanh trường.</p>
+          </button>
+
+          <button onclick="selectRole('employer')" class="p-5 rounded-2xl border-2 border-slate-200 hover:border-indigo-500 bg-slate-50 hover:bg-indigo-50/30 transition text-left space-y-2 group">
+            <div class="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-bold">NTD</div>
+            <h3 class="font-black text-slate-900 text-sm group-hover:text-indigo-600">2. Nhà Tuyển Dụng</h3>
+            <p class="text-[11px] text-slate-500">Đăng tin tuyển dụng sinh viên, quản lý hồ sơ ứng viên qua Zalo.</p>
+          </button>
+
+          <button onclick="promptAdminLogin()" class="p-5 rounded-2xl border-2 border-rose-200 hover:border-rose-500 bg-rose-50/30 hover:bg-rose-50 transition text-left space-y-2 group">
+            <div class="w-10 h-10 rounded-xl bg-rose-600 text-white flex items-center justify-center font-bold">ADM</div>
+            <h3 class="font-black text-rose-900 text-sm group-hover:text-rose-600">3. Quản Trị Viên (Admin)</h3>
+            <p class="text-[11px] text-rose-600/80">Kiểm duyệt tin, chặn lừa đảo, quản lý hệ thống toàn quốc.</p>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ROLE 1: SINH VIÊN PORTAL                                        -->
+    <!-- ============================================================== -->
+    <div id="studentContainer" class="hidden space-y-6">
+      
+      <!-- Bộ lọc Địa lý & Khu vực Toàn quốc -->
+      <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-4">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-3 h-3 rounded-full bg-emerald-500 animate-pulse"></div>
+            <div>
+              <span class="text-xs font-black uppercase text-slate-800 tracking-wider">Hệ Thống Định Vị Việc Làm Toàn Quốc</span>
+              <p class="text-[11px] text-slate-500" id="studentLocationSummary">Đang chọn: Tất cả khu vực / Toàn quốc</p>
+            </div>
+          </div>
+          <button onclick="goHome()" class="text-xs font-bold text-brand-600 hover:underline">Đổi vai trò</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <!-- Miền / Tỉnh thành -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Tỉnh / Thành phố</label>
+            <select id="filterCity" onchange="onCityChange()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+              <option value="all">🌐 Toàn quốc (Tất cả tỉnh thành)</option>
+              <option value="hanoi">Hà Nội</option>
+              <option value="hcm">TP. Hồ Chí Minh</option>
+              <option value="danang">Đà Nẵng</option>
+              <option value="cantho">Cần Thơ</option>
+              <option value="hue">Thừa Thiên Huế</option>
+              <option value="binhduong">Bình Dương</option>
+              <option value="dongnai">Đồng Nai</option>
+              <option value="haiphong">Hải Phòng</option>
+              <option value="thainguyen">Thái Nguyên</option>
+              <option value="khanhhoa">Khánh Hòa</option>
+            </select>
+          </div>
+
+          <!-- Loại công việc -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Loại hình công việc</label>
+            <select id="filterCategory" onchange="applyStudentFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+              <option value="all">Tất cả ngành nghề</option>
+              <option value="tutor">🎓 Gia sư & Dạy thêm</option>
+              <option value="online">💻 Việc làm Online tại nhà</option>
+              <option value="fnb">☕ Trà sữa / Cafe / F&B</option>
+              <option value="store">🛒 Cửa hàng tiện lợi</option>
+              <option value="cinema">🎬 Rạp chiếu phim</option>
+              <option value="logistics">📦 Kho bãi & Soạn hàng</option>
+            </select>
+          </div>
+
+          <!-- Mức lương tối thiểu (10k - 100k) -->
+          <div>
+            <label class="block text-xs font-bold text-slate-600 mb-1">Mức lương tối thiểu</label>
+            <select id="filterWage" onchange="applyStudentFilters()" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-3 py-2 text-xs font-bold text-slate-800">
+              <option value="0">Tất cả mức lương (từ 10k/h)</option>
+              <option value="10000">&ge; 10.000 đ/giờ</option>
+              <option value="20000">&ge; 20.000 đ/giờ</option>
+              <option value="30000">&ge; 30.000 đ/giờ</option>
+              <option value="50000">&ge; 50.000 đ/giờ</option>
+              <option value="80000">&ge; 80.000 đ/giờ</option>
+              <option value="100000">&ge; 100.000 đ/giờ</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="relative pt-2">
+          <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-5"></i>
+          <input type="text" id="searchKeyword" oninput="applyStudentFilters()" placeholder="Tìm theo tên công việc, địa chỉ, môn dạy, thương hiệu (Quận 1, Cầu Giấy, Highlands, Canva...)" class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold focus:ring-2 focus:ring-brand-500 focus:outline-none">
+        </div>
+      </div>
+
+      <!-- Grid việc làm -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <div class="lg:col-span-8 space-y-4">
+          <div class="flex justify-between items-center px-1">
+            <p class="text-xs font-bold text-slate-700">Tìm thấy <span id="jobCountBadge" class="text-brand-600 font-black text-sm">0</span> việc làm phù hợp:</p>
+            <span class="text-[11px] text-slate-400">Ca làm &le; 6h &bull; Phù hợp lịch học SV</span>
+          </div>
+          <div id="studentJobGrid" class="space-y-4">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+
+        <!-- Cột phải: Hồ sơ sinh viên & Đơn đã nộp -->
+        <div class="lg:col-span-4 space-y-4">
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3">
+            <h3 class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <i data-lucide="user" class="w-4 h-4 text-brand-600"></i>
+              <span>Hồ Sơ Của Tôi</span>
+            </h3>
+            <div id="studentProfileCardBox" class="text-xs space-y-1.5 text-slate-600">
+              <!-- Populated via JS -->
+            </div>
+            <button onclick="openModal('profileEditModal')" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition">Chỉnh sửa hồ sơ</button>
+          </div>
+
+          <div class="bg-white rounded-3xl p-5 border border-slate-200 shadow-xs space-y-3">
+            <h3 class="font-black text-slate-900 text-xs uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-100 pb-2">
+              <i data-lucide="send" class="w-4 h-4 text-brand-600"></i>
+              <span>Tiến Độ Đơn Đã Nộp</span>
+            </h3>
+            <div id="studentApplicationsList" class="space-y-2 max-h-96 overflow-y-auto">
+              <!-- Populated via JS -->
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ROLE 2: NHÀ TUYỂN DỤNG PORTAL                                   -->
+    <!-- ============================================================== -->
+    <div id="employerContainer" class="hidden space-y-6">
+      <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-3xl p-6 text-white shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <div>
+          <span class="bg-indigo-500/20 text-indigo-300 border border-indigo-400/30 text-[11px] font-bold px-2.5 py-0.5 rounded-full inline-flex items-center gap-1 mb-2">
+            <i data-lucide="building-2" class="w-3.5 h-3.5"></i>
+            <span>Cổng Đăng Tin & Tuyển Dụng Sinh Viên</span>
+          </span>
+          <h2 class="text-xl sm:text-2xl font-black" id="empGreetingTitle">Quản Lý Tuyển Dụng Doanh Nghiệp</h2>
+          <p class="text-xs text-slate-300 mt-1">Đăng tin tuyển dụng nhanh chóng, kết nối sinh viên qua Zalo 1 chạm.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="openModal('postJobModal')" class="px-5 py-3 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-xs sm:text-sm font-extrabold shadow-lg transition flex items-center gap-2">
+            <i data-lucide="plus-circle" class="w-4 h-4"></i>
+            <span>Đăng tin việc làm mới</span>
+          </button>
+          <button onclick="goHome()" class="px-4 py-3 bg-white/10 hover:bg-white/20 text-white rounded-2xl text-xs font-bold transition">Thoát</button>
+        </div>
+      </div>
+
+      <!-- Danh sách tin tuyển dụng của NTD này & Ứng viên -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-black text-slate-900 text-sm border-b border-slate-100 pb-3">Tin Tuyển Dụng Của Bạn & Danh Sách Ứng Viên</h3>
+        <div id="employerJobsList" class="space-y-4">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ============================================================== -->
+    <!-- ROLE 3: ADMIN MASTER PORTAL (BẢO MẬT TUYỆT ĐỐI)                -->
+    <!-- ============================================================== -->
+    <div id="adminContainer" class="hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div>
+            <span class="bg-rose-100 text-rose-800 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full uppercase inline-flex items-center gap-1">
+              <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-rose-600"></i>
+              <span>Cổng Quản Trị Viên Tối Cao (Master Admin)</span>
+            </span>
+            <h2 class="text-xl font-black text-slate-900 mt-1">Kiểm Duyệt Toàn Hệ Thống UniWork</h2>
+          </div>
+          <button onclick="goHome()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold">Thoát Admin</button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-xs font-bold text-slate-500">Tin chờ duyệt</span>
+            <p id="adminPendingCount" class="text-2xl font-black text-amber-600 mt-1">0</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-xs font-bold text-slate-500">Tin đang hoạt động</span>
+            <p id="adminApprovedCount" class="text-2xl font-black text-emerald-600 mt-1">0</p>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+            <span class="text-xs font-bold text-slate-500">Tố cáo lừa đảo</span>
+            <p id="adminReportsCount" class="text-2xl font-black text-rose-600 mt-1">0</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hàng đợi kiểm duyệt -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-black text-slate-900 text-sm">Hàng Đợi Tiền Kiểm Bài Đăng Mới</h3>
+        <div id="adminPendingList" class="space-y-3">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- Tố cáo -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs space-y-4">
+        <h3 class="font-black text-rose-700 text-sm">Tố Cáo Khẩn Cấp Từ Sinh Viên</h3>
+        <div id="adminReportsList" class="space-y-3">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ============================================================== -->
+  <!-- MODAL ĐĂNG NHẬP / ĐĂNG KÝ PHÂN QUYỀN                           -->
+  <!-- ============================================================== -->
+  <div id="authModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border border-slate-100 p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-base font-black text-slate-900">Đăng Nhập / Đăng Ký Hệ Thống</h3>
+        <button onclick="closeModal('authModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">&times;</button>
+      </div>
+
+      <!-- Tabs chọn vai trò đăng nhập -->
+      <div class="flex p-1 bg-slate-100 rounded-xl text-xs font-bold">
+        <button onclick="switchAuthTab('student')" id="authTabStudent" class="flex-1 py-2 rounded-lg bg-white text-brand-700 shadow-xs transition">Sinh viên</button>
+        <button onclick="switchAuthTab('employer')" id="authTabEmployer" class="flex-1 py-2 rounded-lg text-slate-600 transition">Nhà tuyển dụng</button>
+        <button onclick="switchAuthTab('admin')" id="authTabAdmin" class="flex-1 py-2 rounded-lg text-slate-600 transition">Quản trị</button>
+      </div>
+
+      <!-- Form Sinh Viên -->
+      <form id="authFormStudent" onsubmit="handleAuthSubmit(event, 'student')" class="space-y-3">
+        <p class="text-xs text-slate-500">Đăng nhập hoặc tạo hồ sơ Sinh viên mới:</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên *</label>
+          <input type="text" id="loginStudentName" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Nguyễn Văn A">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại Zalo *</label>
+          <input type="tel" id="loginStudentPhone" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="0909123456">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Trường Đại học *</label>
+          <input type="text" id="loginStudentSchool" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="ĐH Bách Khoa TP.HCM">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-extrabold rounded-xl text-xs shadow-md">Vào Cổng Sinh Viên</button>
+      </form>
+
+      <!-- Form Nhà Tuyển Dụng (Đã thêm ô Địa chỉ) -->
+      <form id="authFormEmployer" onsubmit="handleAuthSubmit(event, 'employer')" class="space-y-3 hidden">
+        <p class="text-xs text-slate-500">Đăng nhập tài khoản Nhà tuyển dụng / Doanh nghiệp:</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tên Thương hiệu / Doanh nghiệp *</label>
+          <input type="text" id="loginEmpName" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="Highlands Coffee / Quán Ăn Vặt X">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Địa chỉ trụ sở / Cửa hàng *</label>
+          <input type="text" id="loginEmpAddress" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="123 Nguyễn Huệ, Quận 1, TP.HCM">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">SĐT / Hotline liên hệ *</label>
+          <input type="tel" id="loginEmpPhone" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="0912345678">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold rounded-xl text-xs shadow-md">Vào Cổng Tuyển Dụng</button>
+      </form>
+
+      <!-- Form Admin Bảo Mật -->
+      <form id="authFormAdmin" onsubmit="handleAuthSubmit(event, 'admin')" class="space-y-3 hidden">
+        <p class="text-xs text-rose-600 font-bold">Khu vực bảo mật cao dành riêng cho Quản trị viên:</p>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Tên đăng nhập Admin *</label>
+          <input type="text" id="adminUser" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="admin">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu bảo mật *</label>
+          <input type="password" id="adminPass" required class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs font-semibold" placeholder="admin123">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-rose-600 hover:bg-rose-700 text-white font-extrabold rounded-xl text-xs shadow-md">Xác Thực Quản Trị Viên</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL ĐĂNG TIN TUYỂN DỤNG (DÀNH CHO NTD - CÓ ĐỊA CHỈ & LƯƠNG 10K-100K) -->
+  <!-- ============================================================== -->
+  <div id="postJobModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-xl w-full shadow-2xl border border-slate-100 p-6 space-y-4">
+      <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+        <h3 class="text-lg font-black text-slate-900">Đăng Tin Tuyển Dụng Mới</h3>
+        <button onclick="closeModal('postJobModal')" class="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 flex items-center justify-center text-slate-500">&times;</button>
+      </div>
+
+      <form id="employerPostJobForm" onsubmit="handleEmployerPostJob(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Vị trí công việc *</label>
+          <input type="text" id="postTitle" required placeholder="VD: Gia sư Toán lớp 9 hoặc Phục vụ quán Cafe" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs">
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Ngành nghề *</label>
+            <select id="postCategory" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs">
+              <option value="tutor">🎓 Gia sư & Dạy thêm</option>
+              <option value="online">💻 Việc làm Online tại nhà</option>
+              <option value="fnb">☕ Trà sữa / Cafe / F&B</option>
+              <option value="store">🛒 Cửa hàng tiện lợi</option>
+              <option value="cinema">🎬 Rạp chiếu phim</option>
+              <option value="logistics">📦 Kho bãi & Soạn hàng</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tỉnh / Thành phố *</label>
+            <select id="postCity" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs">
+              <option value="hanoi">Hà Nội</option>
+              <option value="hcm">TP. Hồ Chí Minh</option>
+              <option value="danang">Đà Nẵng</option>
+              <option value="cantho">Cần Thơ</option>
+              <option value="hue">Thừa Thiên Huế</option>
+              <option value="binhduong">Bình Dương</option>
+              <option value="dongnai">Đồng Nai</option>
+              <option value="haiphong">Hải Phòng</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Ô NHẬP ĐỊA CHỈ NƠI LÀM VIỆC CỤ THỂ -->
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Địa chỉ làm việc cụ thể *</label>
+          <input type="text" id="postAddress" required placeholder="VD: 772 Sư Vạn Hạnh, Phường 12, Quận 10 (Hoặc Online tại nhà)" class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs">
+        </div>
+
+        <div class="grid grid-cols-3 gap-2 bg-slate-50 p-3 rounded-2xl border">
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Số giờ (&le; 6h)*</label>
+            <input type="number" id="postHours" min="2" max="6" value="3" required class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold">
+          </div>
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Khung ca *</label>
+            <input type="text" id="postShift" required value="18:00 - 21:00" class="w-full px-2.5 py-1.5 border rounded-xl text-xs">
+          </div>
+          <!-- LƯƠNG TỪ 10,000Đ ĐẾN 100,000Đ/GIỜ -->
+          <div>
+            <label class="block text-[11px] font-bold text-slate-700 mb-1">Lương (10k-100k đ/h)*</label>
+            <input type="number" id="postWage" min="10000" max="100000" step="1000" value="25000" required class="w-full px-2.5 py-1.5 border rounded-xl text-xs font-bold text-emerald-600">
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Mô tả công việc chi tiết *</label>
+          <textarea id="postDesc" rows="3" required placeholder="Mô tả công việc, yêu cầu..." class="w-full px-3 py-2 border border-slate-200 rounded-xl text-xs"></textarea>
+        </div>
+
+        <div class="flex gap-2 pt-2">
+          <button type="button" onclick="closeModal('postJobModal')" class="flex-1 py-2.5 border rounded-xl text-slate-600 font-bold text-xs">Hủy</button>
+          <button type="submit" class="flex-1 py-2.5 bg-brand-600 hover:bg-brand-700 text-white font-extrabold rounded-xl text-xs shadow-md">Gửi bài kiểm duyệt</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- MODAL BÁO CÁO LỪA ĐẢO & CHỈNH SỬA HỒ SƠ                        -->
+  <!-- ============================================================== -->
+  <div id="reportModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-black text-rose-600">Tố Cáo Lừa Đảo Sinh Viên</h3>
+        <button onclick="closeModal('reportModal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">&times;</button>
+      </div>
+      <form onsubmit="submitStudentReport(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Đơn vị nghi vấn *</label>
+          <input type="text" id="reportTarget" required class="w-full px-3 py-2 border rounded-xl text-xs" placeholder="Tên quán / công ty...">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Lý do vi phạm *</label>
+          <select id="reportReason" class="w-full px-3 py-2 border rounded-xl text-xs">
+            <option value="Đòi tiền cọc giữ chỗ">Đòi tiền đặt cọc (giữ chân)</option>
+            <option value="Bắt mua đồng phục giá cao">Bắt mua đồng phục giá cao</option>
+            <option value="Giữ CCCD / Thẻ sinh viên gốc">Giữ CCCD / Thẻ sinh viên gốc</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Mô tả chi tiết *</label>
+          <textarea id="reportDetail" rows="3" required class="w-full px-3 py-2 border rounded-xl text-xs" placeholder="Nội dung sự việc..."></textarea>
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-rose-600 text-white font-extrabold rounded-xl text-xs shadow-md">Gửi Tố Cáo Ngay</button>
+      </form>
+    </div>
+  </div>
+
+  <div id="profileEditModal" class="fixed inset-0 z-50 hidden bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto">
+    <div class="bg-white rounded-3xl max-w-md w-full shadow-2xl border p-6 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="text-base font-black text-slate-900">Chỉnh Sửa Hồ Sơ Sinh Viên</h3>
+        <button onclick="closeModal('profileEditModal')" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center">&times;</button>
+      </div>
+      <form onsubmit="saveStudentProfile(event)" class="space-y-3">
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Họ và tên *</label>
+          <input type="text" id="editProfName" required class="w-full px-3 py-2 border rounded-xl text-xs">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Số điện thoại Zalo *</label>
+          <input type="tel" id="editProfPhone" required class="w-full px-3 py-2 border rounded-xl text-xs">
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Trường Đại học *</label>
+          <input type="text" id="editProfSchool" required class="w-full px-3 py-2 border rounded-xl text-xs">
+        </div>
+        <button type="submit" class="w-full py-2.5 bg-brand-600 text-white font-extrabold rounded-xl text-xs shadow-md">Lưu Hồ Sơ</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC DỮ LIỆU ĐỊA CHỈ & DẢI LƯƠNG 10K-100K -->
+  <script>
+    const STORAGE_JOBS = 'uniwork_jobs_v5';
+    const STORAGE_APPS = 'uniwork_apps_v5';
+    const STORAGE_REPORTS = 'uniwork_reports_v5';
+    const STORAGE_SESSION = 'uniwork_session_v5';
+    const STORAGE_PROFILE = 'uniwork_profile_v5';
+
+    // KHO VIỆC LÀM PHONG PHÚ ĐÃ CÓ ĐỊA CHỈ CỤ THỂ VÀ MỨC LƯƠNG TRẢI DÀI 10K - 100K
+    const DEFAULT_JOBS = [
+      {
+        id: 1, title: "Phát tờ rơi sự kiện trường học", employer: "CLB Tiếp Thị Trẻ",
+        category: "store", city: "hcm", address: "268 Lý Thường Kiệt, Quận 10, TP.HCM",
+        wagePerHour: 15000, hoursPerDay: 3, shiftTime: "07:00 - 10:00",
+        status: "approved", desc: "Đứng phát tờ rơi giới thiệu khóa học tại cổng trường ĐH Bách Khoa. Nhận tiền mặt ngay sau buổi làm."
+      },
+      {
+        id: 2, title: "Gia sư Chuyên Toán Cao Cấp & Ôn thi HSG", employer: "Trung tâm Gia sư Trí Đức",
+        category: "tutor", city: "hanoi", address: "12 Chùa Bộc, Quận Đống Đa, Hà Nội",
+        wagePerHour: 95000, hoursPerDay: 2, shiftTime: "18:30 - 20:30 (T2, T5)",
+        status: "approved", desc: "Dạy kèm học sinh chuyên Toán cấp 3. Yêu cầu sinh viên điểm thi ĐH môn Toán >= 9.0 hoặc đạt giải HSG."
+      },
+      {
+        id: 3, title: "Nhân viên pha chế & Phục vụ ca tối", employer: "Highlands Coffee Sư Vạn Hạnh",
+        category: "fnb", city: "hcm", address: "772 Sư Vạn Hạnh, Phường 12, Quận 10, TP.HCM",
+        wagePerHour: 28000, hoursPerDay: 4, shiftTime: "18:00 - 22:00 hàng ngày",
+        status: "approved", desc: "Pha chế cơ bản, bưng bê, dọn dẹp quán. Hỗ trợ đổi ca mùa thi cử cho sinh viên."
+      },
+      {
+        id: 4, title: "Biên tập Video ngắn TikTok / Reels (Remote)", employer: "Media Agency Sài Gòn",
+        category: "online", city: "hcm", address: "Làm việc Online tại nhà (Remote)",
+        wagePerHour: 45000, hoursPerDay: 3, shiftTime: "Linh hoạt thời gian",
+        status: "approved", desc: "Cắt dựng video ngắn bằng CapCut/Premiere theo kịch bản có sẵn. Không cần đến văn phòng."
+      },
+      {
+        id: 5, title: "Gia sư Tiếng Anh Giao Tiếp Cao Cấp (1 kèm 1)", employer: "English Home Tutor",
+        category: "tutor", city: "hcm", address: "Khu biệt thự Thảo Điền, Quận 2, TP.HCM",
+        wagePerHour: 100000, hoursPerDay: 2, shiftTime: "19:00 - 21:00",
+        status: "approved", desc: "Luyện phản xạ giao tiếp Tiếng Anh cho người đi làm. Yêu cầu IELTS 7.5+ hoặc sinh viên ĐH Sư Phạm Ngoại Ngữ."
+      },
+      {
+        id: 6, title: "Phụ bếp & Trợ lý dọn dẹp quán ăn nhỏ", employer: "Cơm Tấm Đêm Bình Dân",
+        category: "fnb", city: "cantho", address: "45 Đường 3/2, Quận Ninh Kiều, Cần Thơ",
+        wagePerHour: 18000, hoursPerDay: 4, shiftTime: "17:00 - 21:00",
+        status: "approved", desc: "Rửa bát đĩa, dọn dẹp bàn ghế cuối giờ. Công việc nhẹ nhàng, bao 1 suất cơm tối."
+      },
+      {
+        id: 7, title: "Thu ngân & Sắp xếp hàng hóa cửa hàng", employer: "Circle K Vietnam - Đà Nẵng",
+        category: "store", city: "danang", address: "50 Nguyễn Văn Linh, Quận Hải Châu, Đà Nẵng",
+        wagePerHour: 27000, hoursPerDay: 5, shiftTime: "17:30 - 22:30",
+        status: "approved", desc: "Đứng máy POS, sắp xếp bánh kẹo, vệ sinh quầy kệ sạch sẽ. Rất gần các trường ĐH tại Đà Nẵng."
+      },
+      {
+        id: 8, title: "Soạn hàng & Dán tem bưu kiện Shopee Express", employer: "Kho Logistics Bình Dương",
+        category: "logistics", city: "binhduong", address: "KCN Đại Đăng, TP. Thủ Dầu Một, Bình Dương",
+        wagePerHour: 35000, hoursPerDay: 4, shiftTime: "18:00 - 22:00",
+        status: "approved", desc: "Phân loại hàng nhẹ theo tuyến quận huyện. Kho có máy lạnh và quạt công nghiệp mát mẻ."
+      }
+    ];
+
+    let jobs = JSON.parse(localStorage.getItem(STORAGE_JOBS)) || DEFAULT_JOBS;
+    let applications = JSON.parse(localStorage.getItem(STORAGE_APPS)) || [];
+    let reports = JSON.parse(localStorage.getItem(STORAGE_REPORTS)) || [];
+    let currentSession = JSON.parse(localStorage.getItem(STORAGE_SESSION)) || null;
+    let studentProfile = JSON.parse(localStorage.getItem(STORAGE_PROFILE)) || {
+      fullName: "Nguyễn Minh Khang", phone: "0912345678", school: "ĐH Bách Khoa TP.HCM"
+    };
+
+    function saveState() {
+      localStorage.setItem(STORAGE_JOBS, JSON.stringify(jobs));
+      localStorage.setItem(STORAGE_APPS, JSON.stringify(applications));
+      localStorage.setItem(STORAGE_REPORTS, JSON.stringify(reports));
+      localStorage.setItem(STORAGE_SESSION, JSON.stringify(currentSession));
+      localStorage.setItem(STORAGE_PROFILE, JSON.stringify(studentProfile));
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function showToast(msg, type='info') {
+      const container = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `p-3 rounded-2xl text-white text-xs font-bold shadow-xl flex items-center gap-2 ${type==='success'?'bg-emerald-600':type==='error'?'bg-rose-600':'bg-brand-600'}`;
+      t.innerHTML = `<span>${msg}</span>`;
+      container.appendChild(t);
+      setTimeout(() => t.remove(), 3000);
+    }
+
+    // AUTH & PHÂN QUYỀN
+    function switchAuthTab(tab) {
+      ['student', 'employer', 'admin'].forEach(r => {
+        document.getElementById(`authForm${r.charAt(0).toUpperCase()+r.slice(1)}`).classList.add('hidden');
+        document.getElementById(`authTab${r.charAt(0).toUpperCase()+r.slice(1)}`).className = "flex-1 py-2 rounded-lg text-slate-600 transition";
+      });
+      document.getElementById(`authForm${tab.charAt(0).toUpperCase()+tab.slice(1)}`).classList.remove('hidden');
+      document.getElementById(`authTab${tab.charAt(0).toUpperCase()+tab.slice(1)}`).className = "flex-1 py-2 rounded-lg bg-white text-brand-700 shadow-xs transition font-bold";
+    }
+
+    function handleAuthSubmit(e, role) {
+      e.preventDefault();
+      if (role === 'student') {
+        const name = document.getElementById('loginStudentName').value.trim();
+        const phone = document.getElementById('loginStudentPhone').value.trim();
+        const school = document.getElementById('loginStudentSchool').value.trim();
+        studentProfile = { fullName: name, phone, school };
+        currentSession = { role: 'student', name, phone };
+        showToast(`Đăng nhập thành công với tư cách Sinh viên: ${name}`, 'success');
+      } else if (role === 'employer') {
+        const name = document.getElementById('loginEmpName').value.trim();
+        const address = document.getElementById('loginEmpAddress').value.trim();
+        const phone = document.getElementById('loginEmpPhone').value.trim();
+        currentSession = { role: 'employer', name, address, phone };
+        showToast(`Đăng nhập thành công Nhà tuyển dụng: ${name}`, 'success');
+      } else if (role === 'admin') {
+        const u = document.getElementById('adminUser').value.trim();
+        const p = document.getElementById('adminPass').value.trim();
+        if (u === 'admin' && p === 'admin123') {
+          currentSession = { role: 'admin', name: 'Master Admin', phone: '' };
+          showToast('Xác thực Quản trị viên thành công!', 'success');
+        } else {
+          showToast('Sai tài khoản hoặc mật khẩu Admin (admin / admin123)!', 'error');
+          return;
+        }
+      }
+      saveState();
+      closeModal('authModal');
+      renderAppBySession();
+    }
+
+    function selectRole(role) {
+      if (role === 'admin') {
+        promptAdminLogin();
+      } else {
+        openModal('authModal');
+        switchAuthTab(role);
+      }
+    }
+
+    function promptAdminLogin() {
+      openModal('authModal');
+      switchAuthTab('admin');
+    }
+
+    function logoutSession() {
+      currentSession = null;
+      saveState();
+      goHome();
+      showToast('Đã đăng xuất tài khoản.', 'info');
+    }
+
+    function goHome() {
+      currentSession = null;
+      saveState();
+      renderAppBySession();
+    }
+
+    function renderAppBySession() {
+      ['landingScreen', 'studentContainer', 'employerContainer', 'adminContainer'].forEach(id => {
+        document.getElementById(id).classList.add('hidden');
+      });
+
+      const navInfo = document.getElementById('authNavbarInfo');
+      const authBtn = document.getElementById('authActionButton');
+      const logoutBtn = document.getElementById('logoutButton');
+
+      if (!currentSession) {
+        document.getElementById('landingScreen').classList.remove('hidden');
+        navInfo.classList.add('hidden');
+        authBtn.classList.remove('hidden');
+        logoutBtn.classList.add('hidden');
+      } else {
+        navInfo.classList.remove('hidden');
+        authBtn.classList.add('hidden');
+        logoutBtn.classList.remove('hidden');
+
+        if (currentSession.role === 'student') {
+          document.getElementById('studentContainer').classList.remove('hidden');
+          document.getElementById('navRoleDisplay').innerText = `Sinh viên: ${studentProfile.fullName}`;
+          applyStudentFilters();
+          renderStudentProfile();
+          renderStudentApplications();
+        } else if (currentSession.role === 'employer') {
+          document.getElementById('employerContainer').classList.remove('hidden');
+          document.getElementById('navRoleDisplay').innerText = `NTD: ${currentSession.name}`;
+          document.getElementById('empGreetingTitle').innerText = `Quản Lý Tuyển Dụng: ${currentSession.name}`;
+          renderEmployerDashboard();
+        } else if (currentSession.role === 'admin') {
+          document.getElementById('adminContainer').classList.remove('hidden');
+          document.getElementById('navRoleDisplay').innerText = `Quản Trị Viên (Master)`;
+          renderAdminDashboard();
+        }
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    // SINH VIÊN LOGIC
+    function onCityChange() {
+      const city = document.getElementById('filterCity').value;
+      const names = {all: 'Toàn quốc', hanoi: 'Hà Nội', hcm: 'TP. Hồ Chí Minh', danang: 'Đà Nẵng', cantho: 'Cần Thơ', hue: 'Thừa Thiên Huế', binhduong: 'Bình Dương', dongnai: 'Đồng Nai', haiphong: 'Hải Phòng', thainguyen: 'Thái Nguyên', khanhhoa: 'Khánh Hòa'};
+      document.getElementById('studentLocationSummary').innerText = `Đang chọn khu vực: ${names[city] || 'Tất cả'}`;
+      applyStudentFilters();
+    }
+
+    function applyStudentFilters() {
+      const city = document.getElementById('filterCity').value;
+      const cat = document.getElementById('filterCategory').value;
+      const minWage = parseInt(document.getElementById('filterWage').value) || 0;
+      const keyword = document.getElementById('searchKeyword').value.trim().toLowerCase();
+
+      const filtered = jobs.filter(j => {
+        if (j.status !== 'approved') return false;
+        if (city !== 'all' && j.city !== city) return false;
+        if (cat !== 'all' && j.category !== cat) return false;
+        if (j.wagePerHour < minWage) return false;
+        if (keyword && !j.title.toLowerCase().includes(keyword) && !j.employer.toLowerCase().includes(keyword) && !(j.address && j.address.toLowerCase().includes(keyword))) return false;
+        return true;
+      });
+
+      renderStudentJobGrid(filtered);
+    }
+
+    function renderStudentJobGrid(jobList) {
+      const grid = document.getElementById('studentJobGrid');
+      grid.innerHTML = '';
+      document.getElementById('jobCountBadge').innerText = jobList.length;
+
+      if (jobList.length === 0) {
+        grid.innerHTML = `<div class="p-8 text-center bg-white rounded-3xl border text-xs text-slate-500">Không tìm thấy việc làm phù hợp với tiêu chí lọc.</div>`;
+        return;
+      }
+
+      jobList.forEach(job => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-3xl border border-slate-200 hover:border-brand-300 p-5 shadow-xs transition space-y-3";
+        card.innerHTML = `
+          <div class="flex justify-between items-start gap-2">
+            <div>
+              <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-brand-50 text-brand-700 uppercase">${job.category}</span>
+              <h3 class="text-base font-black text-slate-900 mt-1">${job.title}</h3>
+              <p class="text-xs text-slate-500 font-semibold">${job.employer} &bull; Khu vực: <strong class="uppercase text-slate-700">${job.city}</strong></p>
+            </div>
+            <span class="text-xs font-bold text-emerald-700 bg-emerald-50 px-2 py-1 rounded-full whitespace-nowrap">0đ Cọc</span>
+          </div>
+
+          <!-- ĐỊA CHỈ NHÀ TUYỂN DỤNG CỤ THỂ -->
+          <div class="flex items-center gap-1.5 text-xs text-slate-600 bg-slate-50 p-2 rounded-xl border border-slate-100">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5 text-rose-500 flex-shrink-0"></i>
+            <span class="font-medium"><strong>Địa chỉ:</strong> ${job.address || 'Liên hệ chi tiết khi ứng tuyển'}</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-2xl border text-xs">
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold block">Lương theo giờ</span>
+              <span class="font-black text-emerald-600 text-sm">${job.wagePerHour.toLocaleString('vi-VN')} đ/h</span>
+            </div>
+            <div>
+              <span class="text-[10px] text-slate-400 font-bold block">Ca làm (&le; 6h)</span>
+              <span class="font-bold text-slate-800">${job.hoursPerDay}h/ngày (${job.shiftTime})</span>
+            </div>
+          </div>
+          <p class="text-xs text-slate-600 leading-relaxed">${job.desc}</p>
+          <div class="flex justify-end pt-1">
+            <button onclick="applyJob(${job.id})" class="px-4 py-2 bg-brand-600 hover:bg-brand-700 text-white font-extrabold rounded-xl text-xs shadow-xs transition">
+              Ứng Tuyển Nhanh 1 Chạm
+            </button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function renderStudentProfile() {
+      const box = document.getElementById('studentProfileCardBox');
+      box.innerHTML = `
+        <p><strong>Họ tên:</strong> ${studentProfile.fullName}</p>
+        <p><strong>SĐT Zalo:</strong> ${studentProfile.phone}</p>
+        <p><strong>Trường:</strong> ${studentProfile.school}</p>
+      `;
+    }
+
+    function applyJob(jobId) {
+      const job = jobs.find(j => j.id === jobId);
+      if (!job) return;
+      const exists = applications.some(a => a.jobId === jobId && a.studentPhone === studentProfile.phone);
+      if (exists) {
+        showToast('Bạn đã ứng tuyển công việc này rồi!', 'warning');
+        return;
+      }
+      applications.unshift({
+        id: Date.now(), jobId, jobTitle: job.title, employerName: job.employer,
+        studentName: studentProfile.fullName, studentPhone: studentProfile.phone, school: studentProfile.school,
+        status: 'pending', employerNote: 'Đã gửi hồ sơ cho Nhà tuyển dụng'
+      });
+      saveState();
+      renderStudentApplications();
+      showToast(`Ứng tuyển thành công vào "${job.employer}"!`, 'success');
+    }
+
+    function renderStudentApplications() {
+      const list = document.getElementById('studentApplicationsList');
+      list.innerHTML = '';
+      const myApps = applications.filter(a => a.studentPhone === studentProfile.phone);
+      if (myApps.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-2">Chưa có đơn ứng tuyển nào.</p>`;
+        return;
+      }
+      myApps.forEach(app => {
+        const item = document.createElement('div');
+        item.className = "p-3 rounded-2xl border bg-slate-50 text-xs space-y-1";
+        item.innerHTML = `
+          <div class="flex justify-between font-bold text-slate-900">
+            <span>${app.jobTitle}</span>
+            <span class="text-brand-600">${app.status === 'hired' ? 'Đã nhận việc' : 'Đang chờ'}</span>
+          </div>
+          <p class="text-slate-500">${app.employerName}</p>
+          <p class="text-[11px] text-indigo-700 italic">"${app.employerNote}"</p>
+        `;
+        list.appendChild(item);
+      });
+    }
+
+    // NHÀ TUYỂN DỤNG LOGIC (CÓ ĐỊA CHỈ & HẠN MỨC LƯƠNG 10K-100K)
+    function handleEmployerPostJob(e) {
+      e.preventDefault();
+      const title = document.getElementById('postTitle').value.trim();
+      const category = document.getElementById('postCategory').value;
+      const city = document.getElementById('postCity').value;
+      const address = document.getElementById('postAddress').value.trim();
+      const hoursPerDay = parseInt(document.getElementById('postHours').value);
+      const shiftTime = document.getElementById('postShift').value.trim();
+      const wagePerHour = parseInt(document.getElementById('postWage').value);
+      const desc = document.getElementById('postDesc').value.trim();
+
+      if (hoursPerDay > 6) {
+        showToast('Quy định UniWork: Sinh viên chỉ được làm tối đa 6 tiếng/ngày!', 'error');
+        return;
+      }
+
+      if (wagePerHour < 10000 || wagePerHour > 100000) {
+        showToast('Mức lương quy định cho phép từ 10.000đ đến 100.000đ/giờ!', 'error');
+        return;
+      }
+
+      jobs.unshift({
+        id: Date.now(), title, employer: currentSession.name, category, city, address,
+        hoursPerDay, shiftTime, wagePerHour, status: 'pending', desc
+      });
+      saveState();
+      closeModal('postJobModal');
+      document.getElementById('employerPostJobForm').reset();
+      showToast('Đã gửi tin tuyển dụng! Tin đang chờ Admin kiểm duyệt an toàn.', 'success');
+      renderEmployerDashboard();
+    }
+
+    function renderEmployerDashboard() {
+      const container = document.getElementById('employerJobsList');
+      container.innerHTML = '';
+      const myJobs = jobs.filter(j => j.employer === currentSession.name);
+
+      if (myJobs.length === 0) {
+        container.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-6">Bạn chưa đăng tin tuyển dụng nào. Hãy bấm nút đăng tin phía trên.</p>`;
+        return;
+      }
+
+      myJobs.forEach(job => {
+        const jobApps = applications.filter(a => a.jobId === job.id);
+        const card = document.createElement('div');
+        card.className = "border rounded-3xl p-4 bg-slate-50 space-y-3 text-xs";
+        
+        let appsHtml = jobApps.length === 0 ? `<p class="text-slate-400 italic">Chưa có ứng viên.</p>` : jobApps.map(app => `
+          <div class="bg-white p-2.5 rounded-xl border flex justify-between items-center">
+            <div>
+              <strong>${app.studentName}</strong> (${app.school}) - SĐT/Zalo: <strong>${app.studentPhone}</strong>
+            </div>
+            <a href="https://zalo.me/${app.studentPhone}" target="_blank" class="px-3 py-1 bg-blue-50 text-blue-700 font-bold rounded-lg">Nhắn Zalo</a>
+          </div>
+        `).join('');
+
+        card.innerHTML = `
+          <div class="flex justify-between items-center">
+            <div>
+              <span class="px-2 py-0.5 rounded-full text-[10px] font-bold ${job.status==='approved'?'bg-emerald-100 text-emerald-800':'bg-amber-100 text-amber-800'}">
+                ${job.status==='approved'?'Đang hoạt động':'Chờ duyệt'}
+              </span>
+              <h4 class="font-black text-slate-900 text-sm mt-1">${job.title}</h4>
+              <p class="text-slate-500"><strong>Địa chỉ:</strong> ${job.address || 'Chưa cập nhật'}</p>
+              <p class="text-slate-500">Lương: ${job.wagePerHour.toLocaleString('vi-VN')} đ/h &bull; Ca: ${job.shiftTime}</p>
+            </div>
+            <button onclick="deleteEmployerJob(${job.id})" class="text-rose-600 font-bold hover:underline">Xóa tin</button>
+          </div>
+          <div class="pt-2 border-t space-y-2">
+            <span class="font-bold text-slate-700">Danh sách ứng viên (${jobApps.length}):</span>
+            ${appsHtml}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function deleteEmployerJob(jobId) {
+      jobs = jobs.filter(j => j.id !== jobId);
+      saveState();
+      renderEmployerDashboard();
+      showToast('Đã xóa tin tuyển dụng.', 'info');
+    }
+
+    // ADMIN MASTER LOGIC
+    function renderAdminDashboard() {
+      const pendingList = document.getElementById('adminPendingList');
+      const reportsList = document.getElementById('adminReportsList');
+      pendingList.innerHTML = '';
+      reportsList.innerHTML = '';
+
+      const pendingJobs = jobs.filter(j => j.status === 'pending');
+      document.getElementById('adminPendingCount').innerText = pendingJobs.length;
+      document.getElementById('adminApprovedCount').innerText = jobs.filter(j => j.status === 'approved').length;
+      document.getElementById('adminReportsCount').innerText = reports.length;
+
+      if (pendingJobs.length === 0) {
+        pendingList.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">Không có bài đăng chờ duyệt.</p>`;
+      } else {
+        pendingJobs.forEach(job => {
+          const item = document.createElement('div');
+          item.className = "p-4 rounded-2xl border bg-amber-50/50 flex justify-between items-center text-xs";
+          item.innerHTML = `
+            <div>
+              <strong>${job.employer}</strong> tuyển: <span class="font-bold text-slate-900">${job.title}</span> (${job.wagePerHour.toLocaleString('vi-VN')} đ/h)
+              <p class="text-slate-600 mt-0.5"><strong>Địa chỉ:</strong> ${job.address || 'N/A'}</p>
+              <p class="text-slate-600 mt-0.5">${job.desc}</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="adminApproveJob(${job.id})" class="px-3 py-1.5 bg-emerald-600 text-white font-bold rounded-xl">Duyệt</button>
+              <button onclick="adminRejectJob(${job.id})" class="px-3 py-1.5 bg-rose-600 text-white font-bold rounded-xl">Xóa</button>
+            </div>
+          `;
+          pendingList.appendChild(item);
+        });
+      }
+
+      if (reports.length === 0) {
+        reportsList.innerHTML = `<p class="text-xs text-slate-400 italic text-center py-4">Không có tố cáo nào.</p>`;
+      } else {
+        reports.forEach((rep, idx) => {
+          const card = document.createElement('div');
+          card.className = "p-4 rounded-2xl border border-rose-200 bg-rose-50 text-xs flex justify-between items-center";
+          card.innerHTML = `
+            <div>
+              <strong class="text-rose-700">Tố cáo: ${rep.target}</strong> - Lý do: ${rep.reason}
+              <p class="text-slate-600 mt-0.5">${rep.detail}</p>
+            </div>
+            <button onclick="resolveReport(${idx})" class="px-3 py-1.5 bg-slate-800 text-white font-bold rounded-xl">Đã xử lý</button>
+          `;
+          reportsList.appendChild(card);
+        });
+      }
+    }
+
+    function adminApproveJob(id) {
+      const j = jobs.find(x => x.id === id);
+      if (j) { j.status = 'approved'; saveState(); renderAdminDashboard(); showToast('Đã phê duyệt tin tuyển dụng!', 'success'); }
+    }
+
+    function adminRejectJob(id) {
+      jobs = jobs.filter(x => x.id !== id);
+      saveState();
+      renderAdminDashboard();
+      showToast('Đã từ chối và xóa tin.', 'warning');
+    }
+
+    function submitStudentReport(e) {
+      e.preventDefault();
+      reports.push({
+        target: document.getElementById('reportTarget').value.trim(),
+        reason: document.getElementById('reportReason').value,
+        detail: document.getElementById('reportDetail').value.trim()
+      });
+      saveState();
+      closeModal('reportModal');
+      showToast('Đã gửi tố cáo đến hệ thống quản trị!', 'success');
+    }
+
+    function resolveReport(idx) {
+      reports.splice(idx, 1);
+      saveState();
+      renderAdminDashboard();
+      showToast('Đã giải quyết tố cáo.', 'info');
+    }
+
+    function saveStudentProfile(e) {
+      e.preventDefault();
+      studentProfile.fullName = document.getElementById('editProfName').value.trim();
+      studentProfile.phone = document.getElementById('editProfPhone').value.trim();
+      studentProfile.school = document.getElementById('editProfSchool').value.trim();
+      saveState();
+      closeModal('profileEditModal');
+      renderStudentProfile();
+      showToast('Đã cập nhật hồ sơ sinh viên!', 'success');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+      if (id === 'profileEditModal') {
+        document.getElementById('editProfName').value = studentProfile.fullName;
+        document.getElementById('editProfPhone').value = studentProfile.phone;
+        document.getElementById('editProfSchool').value = studentProfile.school;
+      }
+      if (window.lucide) lucide.createIcons();
+    }
+
+    function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+    window.onload = function() {
+      renderAppBySession();
+      if (window.lucide) lucide.createIcons();
+    };
+  </script>
+</body>
+</html>
